@@ -1,82 +1,181 @@
-"use client"
+"use client";
 
-import type { FC } from "react"
-import { motion } from "framer-motion"
-import Image from "next/image"
-import SectionHeading from "@/components/atoms/section-heading"
+import { FC, useState, useRef } from "react";
+import { motion } from "framer-motion";
+import { Play, Pause, Loader2 } from "lucide-react";
+import SectionHeading from "@/components/atoms/section-heading";
 
 const ProductDemo: FC = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayPause = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      if (video.paused) {
+        await video.play();
+        setIsPlaying(true);
+      } else {
+        video.pause();
+        setIsPlaying(false);
+      }
+    } catch (err) {
+      console.error("Video control error:", err);
+      setError("Video playback error");
+    }
+  };
+
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error("Video error:", e);
+    setError("Failed to load video - please check if the video file exists");
+    setIsLoading(false);
+  };
+
+  const handleLoadedData = () => {
+    setIsLoading(false);
+    setError(null);
+  };
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+  };
+
   return (
-    <section className="py-20 relative">
+    <section className="py-20 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <SectionHeading
-          title="See BuzzDrop.ai in Action"
-          subtitle="Watch how our platform transforms your content workflow"
+          title="Experience BuzzDrop.ai"
+          subtitle="Watch how we transform your content creation process"
           centered
         />
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative max-w-5xl mx-auto mt-12 rounded-xl overflow-hidden gradient-border"
+          className="relative max-w-5xl mx-auto mt-12"
         >
-          <div className="aspect-w-16 aspect-h-9 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-indigo-900/40 to-blue-900/40 rounded-xl">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-full h-full">
-                  <Image
-                    src="/placeholder.svg?height=720&width=1280"
-                    alt="BuzzDrop.ai Product Demo"
-                    fill
-                    className="object-cover rounded-xl"
-                  />
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm z-0" />
+            <div className="relative aspect-video bg-gray-900">
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                playsInline
+                muted
+                preload="metadata"
+                onLoadedData={handleLoadedData}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onError={handleVideoError}
+                onCanPlay={() => setIsLoading(false)}
+              >
+                <source
+                  src="/Screen Recording 2025-05-25 at 3.03.44 PM.mov"
+                  type="video/quicktime"
+                />
+                Your browser does not support the video tag.
+              </video>
 
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center cursor-pointer"
-                    >
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="text-white"
-                        >
-                          <polygon points="5 3 19 12 5 21 5 3" fill="white" />
-                        </svg>
-                      </div>
-                    </motion.div>
+              {/* Loading State */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                  <div className="text-center">
+                    <Loader2 className="w-8 h-8 text-white animate-spin mx-auto mb-2" />
+                    <p className="text-white text-sm">Loading demo...</p>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Error State */}
+              {error && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                  <div className="text-white text-center p-4 max-w-md">
+                    <div className="mb-4">
+                      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Play className="w-8 h-8 text-red-400" />
+                      </div>
+                      <p className="text-red-400 mb-2">Video Unavailable</p>
+                      <p className="text-gray-300 text-sm mb-4">
+                        The demo video is currently being processed. Check back soon!
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        setIsLoading(true);
+                        if (videoRef.current) {
+                          videoRef.current.load();
+                        }
+                      }}
+                      className="px-4 py-2 bg-violet-500 hover:bg-violet-600 rounded-md text-sm transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Play/Pause Button */}
+              {!error && !isLoading && (
+                <motion.button
+                  onClick={handlePlayPause}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px] group hover:bg-black/40 transition-all"
+                  initial={false}
+                  animate={{ opacity: isPlaying ? 0 : 1 }}
+                  whileHover={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="w-20 h-20 rounded-full bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-white/10"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-8 h-8 text-white" />
+                    ) : (
+                      <Play className="w-8 h-8 text-white translate-x-0.5" />
+                    )}
+                  </motion.div>
+                </motion.button>
+              )}
             </div>
           </div>
 
-          <motion.div
-            className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-30"
-            animate={{
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: "reverse",
-            }}
-          />
+          {/* Glow Effect */}
+          <div className="absolute -inset-4 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-purple-500 opacity-20 blur-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-pink-500 to-purple-500 opacity-20 blur-2xl" />
+          </div>
+        </motion.div>
+
+        {/* Fallback Content */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="text-center mt-8 text-gray-400"
+        >
+          <p className="text-sm">
+            Having trouble with the video? Check out our{" "}
+            <a href="#features" className="text-violet-400 hover:text-violet-300 underline">
+              features section
+            </a>{" "}
+            to learn more about BuzzDrop.ai
+          </p>
         </motion.div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default ProductDemo
+export default ProductDemo;
