@@ -80,8 +80,8 @@ const ProductDemo: FC = () => {
                 onCanPlay={() => setIsLoading(false)}
               >
                 <source
-                  src="/Screen Recording 2025-05-25 at 3.03.44 PM.mov"
-                  type="video/quicktime"
+                  src="/assets/Screen Recording 2025-05-25 at 3.03.44 PM.mp4"
+type="video/mp4"
                 />
                 Your browser does not support the video tag.
               </video>

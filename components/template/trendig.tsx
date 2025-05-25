@@ -37,11 +37,6 @@ const handlegenerate = async () => {
     console.log(res);
   } catch (error) {
     console.error("Error generating content:", error);
-    toast({
-      title: "Error generating content",
-      description: "Please try again later.",
-      variant: "destructive",
-    });
   } finally {
     setIsGenerating(false);
   }
