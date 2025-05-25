@@ -1,341 +1,251 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   TrendingUp,
   Flame,
-  Brain,
-  Users,
   RefreshCw,
   Sparkles,
   Target,
-  Star,
   Zap,
+  Eye,
+  Heart,
+  MessageCircle,
 } from "lucide-react";
-import { niches } from "@/lib/utils";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { generateTrendingContentIdeas } from "@/lib/openai";
 
-interface TrendingItem {
-  topic: string;
-  trend: string;
-  engagement: string;
-  posts: string;
-  growth: string;
-  contentIdeas: string[];
-}
+const niches = [
+  { id: "tech", name: "Tech", icon: "💻" },
+  { id: "fitness", name: "Fitness", icon: "💪" },
+  { id: "food", name: "Food", icon: "🍕" },
+  { id: "travel", name: "Travel", icon: "✈️" },
+  { id: "finance", name: "Finance", icon: "💰" },
+  { id: "lifestyle", name: "Lifestyle", icon: "🌟" },
+  { id: "business", name: "Business", icon: "📈" },
+  { id: "health", name: "Health", icon: "🏥" },
+];
 
-interface ViralTemplate {
-  title: string;
-  format: string;
-  virality: number;
-  hooks: string[];
-}
-
-interface NicheContent {
-  trending: TrendingItem[];
-  viral: ViralTemplate[];
-}
-
-interface ContentData {
-  [key: string]: NicheContent;
-}
-
-const TrendingContentCard = () => {
-  const [selectedNiche, setSelectedNiche] = useState("tech");
+const TrendingContentDisplay = () => {
+  const [selectedNiche, setSelectedNiche] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [expandedTrend, setExpandedTrend] = useState<number | null>(null);
-  const [contentData, setContentData] = useState<ContentData>({
-    tech: {
-      trending: [],
-      viral: [],
-    },
-  });
+  const [generatedContent, setGeneratedContent] = useState(null);
+ 
 
-  const generateTrendingContent = async () => {
-    try {
-      setIsGenerating(true);
-      const response = await fetch("/api/trending", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche: selectedNiche }),
-      });
+const handlegenerate = async () => {
+  try {
+    setIsGenerating(true);
+    const res = await generateTrendingContentIdeas(selectedNiche);
+    setGeneratedContent(res); 
+    console.log(res);
+  } catch (error) {
+    console.error("Error generating content:", error);
+    toast({
+      title: "Error generating content",
+      description: "Please try again later.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
-      if (!response.ok) throw new Error("Failed to generate content");
-
-      const data = await response.json();
-      setContentData((prev) => ({
-        ...prev,
-        [selectedNiche]: data,
-      }));
-    } catch (error) {
-      console.error("Error generating content:", error);
-    } finally {
-      setIsGenerating(false);
-    }
+  const getEngagementColor = (engagement) => {
+    const percent = parseFloat(engagement);
+    if (percent >= 7) return "text-green-600 bg-green-100 dark:bg-green-900/20";
+    if (percent >= 5)
+      return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20";
+    return "text-red-600 bg-red-100 dark:bg-red-900/20";
   };
 
-  useEffect(() => {
-    generateTrendingContent();
-  }, [selectedNiche]);
-
-  const getTrendColor = (trend: string): string => {
-    if (trend.includes("Viral"))
-      return "text-red-600 bg-red-100 dark:bg-red-900/20 dark:text-red-400";
-    if (trend.includes("Rising"))
-      return "text-orange-600 bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400";
-    return "text-blue-600 bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400";
+  const getEngagementIcon = (engagement) => {
+    const percent = parseFloat(engagement);
+    if (percent >= 7) return <TrendingUp className="w-3 h-3" />;
+    if (percent >= 5) return <Eye className="w-3 h-3" />;
+    return <Heart className="w-3 h-3" />;
   };
-
-  const currentNicheData = contentData[selectedNiche] || contentData.tech;
 
   return (
-    <div className="space-y-8">
-      {/* Niche Selection Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Target className="w-6 h-6 text-violet-500" />
-            Select Your Niche
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Choose a niche to get targeted content ideas
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+            Trending Content Explorer
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            Discover viral topics and high-engagement hooks powered by AI
           </p>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {niches.map((niche) => (
-              <button
-                key={niche.id}
-                onClick={() => setSelectedNiche(niche.id)}
-                className={`p-3 rounded-xl border transition-all text-center ${
-                  selectedNiche === niche.id
-                    ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20 shadow-md"
-                    : "border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-700"
-                }`}
-              >
-                <div className="text-2xl mb-2">{niche.icon}</div>
-                <div className="font-medium text-sm text-gray-900 dark:text-white">
-                  {niche.name}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Content Display Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Flame className="w-6 h-6 text-violet-500" />
-              Trending Content
+        {/* Niche Selection */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-8 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Target className="w-7 h-7 text-violet-500" />
+              Select Your Niche
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-              AI-powered content suggestions
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Choose a niche to get targeted content ideas and engagement
+              insights
             </p>
           </div>
-          <button
-            onClick={generateTrendingContent}
-            disabled={isGenerating}
-            className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 flex items-center gap-2 text-sm"
-          >
-            {isGenerating ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Refresh Ideas
-              </>
-            )}
-          </button>
-        </div>
-
-        <Tabs defaultValue="trending" className="w-full">
-          <TabsList className="w-full justify-start border-b border-gray-100 dark:border-gray-700 bg-transparent">
-            <TabsTrigger value="trending" className="gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Trending Topics
-            </TabsTrigger>
-            <TabsTrigger value="viral" className="gap-2">
-              <Flame className="w-4 h-4" />
-              Viral Templates
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="trending" className="p-6">
-            {currentNicheData.trending?.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No trending content available. Click refresh to generate new
-                ideas.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {currentNicheData.trending?.map((item, index) => (
-                  <div
-                    key={index}
-                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-3"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        {item.topic}
-                      </h4>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getTrendColor(
-                          item.trend
-                        )}`}
-                      >
-                        {item.trend}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-3 text-xs text-gray-600 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {item.posts}
-                      </span>
-                      <span className="text-green-600 font-medium">
-                        {item.growth}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        setExpandedTrend(expandedTrend === index ? null : index)
-                      }
-                      className="text-purple-600 text-xs font-medium hover:underline flex items-center gap-1"
-                    >
-                      <Zap className="w-3 h-3" />
-                      {expandedTrend === index ? "Hide" : "Show"} Ideas (
-                      {item.contentIdeas.length})
-                    </button>
-
-                    {expandedTrend === index && (
-                      <div className="mt-3 space-y-2">
-                        {item.contentIdeas.map((idea, iIndex) => (
-                          <div
-                            key={iIndex}
-                            className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
-                          >
-                            <span className="text-gray-700 dark:text-gray-300 flex-1">
-                              {idea}
-                            </span>
-                            <button
-                              onClick={() => insertContentIdea(idea)}
-                              className="ml-2 text-purple-600 hover:text-purple-700 font-medium"
-                            >
-                              Use
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+          <div className="p-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+              {niches.map((niche) => (
+                <button
+                  key={niche.id}
+                  onClick={() => setSelectedNiche(niche.id)}
+                  className={`p-4 rounded-2xl border-2 transition-all duration-300 text-center group hover:scale-105 ${
+                    selectedNiche === niche.id
+                      ? "border-violet-500 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 shadow-lg"
+                      : "border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 hover:shadow-md"
+                  }`}
+                >
+                  <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">
+                    {niche.icon}
                   </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="viral" className="p-6">
-            {currentNicheData.viral?.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No viral templates available. Click refresh to generate new
-                ideas.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {currentNicheData.viral?.map((template, index) => (
-                  <div
-                    key={index}
-                    className="border border-gray-200 dark:border-gray-600 rounded-lg p-3"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                          {template.title}
-                        </h4>
-                        <span className="text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 px-2 py-1 rounded mt-1 inline-block">
-                          {template.format}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-orange-600">
-                          <Star className="w-3 h-3 fill-current" />
-                          <span className="font-bold text-xs">
-                            {template.virality}/100
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Hook Options:
-                      </div>
-                      {template.hooks.map((hook, hIndex) => (
-                        <div
-                          key={hIndex}
-                          className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
-                        >
-                          <span className="text-gray-700 dark:text-gray-300 flex-1">
-                            &quot;{hook}&ldquo;
-                          </span>
-                          <button
-                            onClick={() =>
-                              insertContentIdea(`${hook} - ${template.title}`)
-                            }
-                            className="ml-2 text-purple-600 hover:text-purple-700 font-medium"
-                          >
-                            Use
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="font-semibold text-sm text-gray-900 dark:text-white">
+                    {niche.name}
                   </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* AI Insights Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Brain className="w-6 h-6 text-violet-500" />
-            AI Insights
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Performance metrics and analytics
-          </p>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <div className="text-lg font-bold text-purple-600">89%</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                Match Rate
-              </div>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-green-600">12.4K</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                Avg Reach
-              </div>
-            </div>
-            <div>
-              <div className="text-lg font-bold text-orange-600">3.2%</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                Engagement
-              </div>
+                </button>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Main Content */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-8 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <Flame className="w-7 h-7 text-violet-500" />
+                Trending Topics & Hooks
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                AI-powered content suggestions with engagement predictions
+              </p>
+            </div>
+            <button
+              onClick={handlegenerate}
+              disabled={isGenerating}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 flex items-center gap-3 shadow-lg hover:shadow-xl"
+            >
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Refresh Ideas
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* <div className="p-8">
+            <div className="space-y-6">
+              {generatedContent.trending.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        {item.topic}
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2 ${getEngagementColor(
+                            item.engagement
+                          )}`}
+                        >
+                          {getEngagementIcon(item.engagement)}
+                          {item.engagement} Engagement
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          <MessageCircle className="w-4 h-4" />
+                          {item.hooks.length} hooks available
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-yellow-500" />
+                      High-Engagement Hooks:
+                    </h4>
+                    {item.hooks.map((hook, hookIndex) => (
+                      <div
+                        key={hookIndex}
+                        className="bg-white dark:bg-gray-600 rounded-xl p-4 border border-gray-100 dark:border-gray-500 hover:border-violet-200 dark:hover:border-violet-500 transition-all duration-200 group"
+                      >
+                        <div className="flex items-start justify-between">
+                          <p className="text-gray-800 dark:text-gray-200 flex-1 leading-relaxed">
+                            &#34;{hook}&ldquo;
+                          </p>
+                          <button className="ml-4 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-lg text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 hover:from-violet-600 hover:to-purple-600 whitespace-nowrap">
+                            Use Hook
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div> */}
+        </div>
+
+        {/* AI Insights */}
+        {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="p-8 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <Brain className="w-7 h-7 text-violet-500" />
+              AI Performance Insights
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Real-time analytics and engagement predictions
+            </p>
+          </div>
+          <div className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  89%
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Trend Match Rate
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  12.4K
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Avg Reach
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-orange-600 mb-2">
+                  7.1%
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Avg Engagement
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-6 text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">94%</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Accuracy Score
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> */}
       </div>
     </div>
   );
 };
 
-export default TrendingContentCard;
+export default TrendingContentDisplay;

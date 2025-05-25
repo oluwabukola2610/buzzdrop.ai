@@ -1,52 +1,53 @@
+"use server";
 import { OpenAI } from "openai";
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export async function generateTrendingContentIdeas(niche: string) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  const prompt = `
+You are a viral content strategist AI.
 
-export interface TrendingTopic {
-  topic: string;
-  trend: string;
-  engagement: string;
-  posts: string;
-  growth: string;
-  contentIdeas: string[];
-}
+Based on the niche: **${niche}**, generate 4 **trendy content ideas** that could go viral on social platforms.
 
-export interface ViralTemplate {
-  title: string;
-  format: string;
-  virality: number;
-  hooks: string[];
-}
+For each idea:
+- Give it a **clear topic title**
+- Write **4 unique scroll-stopping hooks** that could be used as intros for reels, captions, tweets, or video content
+- Hooks should be short, curiosity-driven, and catchy
 
-export interface TrendingContent {
-  trending: TrendingTopic[];
-  viral: ViralTemplate[];
-}
+**Output format (JSON only)**:
+[
+  {
+    "topic": "The Rise of AI Tools in Everyday Life",
+    "hooks": [
+      "You're using AI every day... without knowing it 🤯",
+      "This tool is replacing 3 full-time jobs 💼",
+      "AI isn’t the future. It’s already running your life.",
+      "Watch this before you apply to another job 👀"
+    ]
+  },
+  ...
+]
+`;
 
-export async function OpenAIStream(prompt: string): Promise<TrendingContent> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a social media trends expert that provides content ideas.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
+  const res = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create viral, platform-native content ideas tailored to a niche, formatted for short-form video, captions, and tweets.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.9,
+    response_format: { type: "json_object" },
+  });
 
-    return JSON.parse(response.choices[0].message.content);
-  } catch (error) {
-    console.error("OpenAI Stream Error:", error);
-    throw error;
-  }
+  const raw = res.choices[0]?.message?.content;
+  console.log(raw);
+  if (!raw) throw new Error("No response from OpenAI");
+
+  return JSON.parse(raw);
 }

@@ -1,13 +1,13 @@
 import React from "react";
 import { generateAIContent } from "@/lib/ai-server";
 import { fileToBase64 } from "@/lib/utils";
-import { toast } from "@/components/ui/use-toast";
 import { getFromIndexedDB } from "@/lib/indexdb";
 import { useEffect, useState } from "react";
 import ContentPreview from "./ContentPreview";
 import SocialPreview from "./SocialPreview";
 import GeneratedContent from "./GeneratedContent";
 import SettingsCard from "./SettingsCard";
+import { useToast } from "@/components/ui/use-toast";
 
 const Generate = () => {
   const [contentData, setContentData] = useState<{
@@ -21,6 +21,7 @@ const Generate = () => {
   const [activeTab, setActiveTab] = useState<string>("");
   const [generatedContent, setGeneratedContent] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     getFromIndexedDB("file-content", "uploads")
@@ -55,26 +56,6 @@ const Generate = () => {
   }
 
   const handlegenerate = async () => {
-    // if (!contentData)
-    //   return toast({
-    //     title: "No content available",
-    //     description: "Please upload a file to generate content.",
-    //     variant: "destructive",
-    //   });
-    // if (selectedPlatforms.length === 0) {
-    //   return toast({
-    //     title: "No platforms selected",
-    //     description: "Please select at least one platform.",
-    //     variant: "destructive",
-    //   });
-    // }
-    // if (!selectedVibe) {
-    //   return toast({
-    //     title: "No vibe selected",
-    //     description: "Please select a vibe for the content.",
-    //     variant: "destructive",
-    //   });
-    // }
     try {
       setIsGenerating(true);
       const base64 = (await fileToBase64(contentData.file)).split(",")[1];
