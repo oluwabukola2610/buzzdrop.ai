@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Upload, Sparkles, ArrowRight } from "lucide-react";
 import AnimatedButton from "@/components/atoms/animated-button";
 import { useMobile } from "@/hooks/use-mobile";
-import FileUpload from "../molecules/FileUpload";
+import FileUpload from "../molecules/upload";
 
 const HeroSection: FC = () => {
   const isMobile = useMobile();

@@ -1,4 +1,4 @@
-import Home from '@/layout/HomeScreem'
+import Home from '@/components/template/home'
 import React from 'react'
 
 const page = () => {
