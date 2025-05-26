@@ -8,7 +8,6 @@ import AnimatedButton from "@/components/atoms/animated-button"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useMobile } from "@/hooks/use-mobile"
-import Link from "next/link"
 
 const navLinks = [
   { name: "Features", href: "#features" },
@@ -21,7 +20,6 @@ const Navbar: FC = () => {
   const { scrollY } = useScroll()
   const backgroundColor = useTransform(scrollY, [0, 100], ["rgba(9, 9, 11, 0)", "rgba(9, 9, 11, 0.8)"])
   const backdropBlur = useTransform(scrollY, [0, 100], ["blur(0px)", "blur(8px)"])
-  const borderOpacity = useTransform(scrollY, [0, 100], [0, 1])
 
   const isMobile = useMobile()
 
@@ -30,8 +28,6 @@ const Navbar: FC = () => {
       style={{
         backgroundColor,
         backdropFilter: backdropBlur,
-        // borderBottom: "1px solid",
-        // borderColor: `rgba(39, 39, 42, ${borderOpacity.get()})`,
       }}
       className="fixed top-0 left-0 right-0 z-50 py-4"
     >
@@ -40,7 +36,7 @@ const Navbar: FC = () => {
 
         {!isMobile && (
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link, index) => (
+            {navLinks.map((link) => (
               <motion.a
                 key={link.name}
                 href={link.href}

@@ -2,17 +2,15 @@
 
 import type { FC } from "react";
 import { motion } from "framer-motion";
-import { Upload, Sparkles, ArrowRight } from "lucide-react";
+import {  Sparkles, ArrowRight } from "lucide-react";
 import AnimatedButton from "@/components/atoms/animated-button";
-import { useMobile } from "@/hooks/use-mobile";
 import FileUpload from "../molecules/upload";
 
 const HeroSection: FC = () => {
-  const isMobile = useMobile();
 
   return (
     <section className="pt-32 pb-20 md:pt-40 md:pb-32 relative overflow-hidden">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
           <div className="w-full lg:w-1/2 space-y-8">
             <motion.h1

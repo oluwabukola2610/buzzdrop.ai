@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import TrendingContentCard from "../trendig";
 import Generate from "./GeneratePage";
 import { Sparkles, TrendingUp } from "lucide-react";
+import TrendingContentDisplay from "../TrendingTab";
 const GeneratePage = () => {
   const [activeMainTab, setActiveMainTab] = useState("generate");
   return (
@@ -39,7 +39,7 @@ const GeneratePage = () => {
           </div>
         </div>
         {activeMainTab === "generate" && <Generate />}
-        {activeMainTab === "trending" && <TrendingContentCard />}
+        {activeMainTab === "trending" && <TrendingContentDisplay />}
       </div>
     </main>
   );

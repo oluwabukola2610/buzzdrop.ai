@@ -1,8 +1,10 @@
 "use server";
-import { OpenAI } from "openai";
+import { GoogleGenAI } from "@google/genai";
+const apiKey = process.env.GOOGLE_API_KEY!;
+
+const ai = new GoogleGenAI({ apiKey });
 
 export async function generateTrendingContentIdeas(niche: string) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
   const prompt = `
 You are a viral content strategist AI.
 
@@ -12,42 +14,51 @@ For each idea:
 - Give it a **clear topic title**
 - Write **4 unique scroll-stopping hooks** that could be used as intros for reels, captions, tweets, or video content
 - Hooks should be short, curiosity-driven, and catchy
+- Estimate a potential **engagement rate** (as a percentage) based on how likely the idea is to go viral
 
-**Output format (JSON only)**:
+**IMPORTANT: Return ONLY valid JSON in this exact format, no extra text:**
+
 [
   {
-    "topic": "The Rise of AI Tools in Everyday Life",
+    "topic": "Example Topic Title",
     "hooks": [
-      "You're using AI every day... without knowing it 🤯",
-      "This tool is replacing 3 full-time jobs 💼",
-      "AI isn’t the future. It’s already running your life.",
-      "Watch this before you apply to another job 👀"
-    ]
+      "Hook 1 example",
+      "Hook 2 example",
+      "Hook 3 example",
+      "Hook 4 example"
+    ],
+    "engagementRate": "78%"
   },
-  ...
+  {
+    "topic": "Another Topic Title",
+    "hooks": [
+      "Hook 1 example",
+      "Hook 2 example",
+      "Hook 3 example",
+      "Hook 4 example"
+    ],
+    "engagementRate": "85%"
+  }
 ]
 `;
 
-  const res = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You create viral, platform-native content ideas tailored to a niche, formatted for short-form video, captions, and tweets.",
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: [{ text: prompt }],
+      config: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 6000,
+        temperature: 0.9,
       },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    temperature: 0.9,
-    response_format: { type: "json_object" },
-  });
+    });
 
-  const raw = res.choices[0]?.message?.content;
-  console.log(raw);
-  if (!raw) throw new Error("No response from OpenAI");
-
-  return JSON.parse(raw);
+    if (!response.text) {
+      throw new Error("No text in response");
+    }
+    return JSON.parse(response.text);
+  } catch (err) {
+    console.error("Gemini trending content generation failed:", err);
+    return undefined;
+  }
 }

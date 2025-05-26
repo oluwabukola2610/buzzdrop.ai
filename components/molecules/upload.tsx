@@ -108,47 +108,92 @@ export default function FileUpload({
     }
     return () => setPreviewUrl(null);
   }, [file]);
+  const formatBytes = useCallback((bytes: number, decimals = 2): string => {
+    if (!+bytes) return "0 Bytes";
 
-  const handleFileValidation = (selectedFile: File): boolean => {
-    setError(null);
-    if (
-      acceptedFileTypes &&
-      acceptedFileTypes.length > 0 &&
-      !acceptedFileTypes.includes(selectedFile.type)
-    ) {
-      const err = `Invalid file type. Accepted: ${acceptedFileTypes
-        .map((t) => t.split("/")[1])
-        .join(", ")
-        .toUpperCase()}`;
-      setError(err);
-      setStatus("error");
-      if (onUploadError) onUploadError(err);
-      return false;
-    }
-    if (maxFileSize && selectedFile.size > maxFileSize) {
-      const err = `File size exceeds the limit of ${formatBytes(maxFileSize)}.`;
-      setError(err);
-      setStatus("error");
-      if (onUploadError) onUploadError(err);
-      return false;
-    }
-    return true;
-  };
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
-  const handleFileSelect = (selectedFile: File | null) => {
-    if (!selectedFile) return;
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const unit = sizes[i] || sizes[sizes.length - 1];
 
-    if (!handleFileValidation(selectedFile)) {
-      setFile(null);
-      return;
-    }
+    return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${unit}`;
+  }, []);
+  const handleFileValidation = useCallback(
+    (selectedFile: File): boolean => {
+      setError(null);
+      if (
+        acceptedFileTypes &&
+        acceptedFileTypes.length > 0 &&
+        !acceptedFileTypes.includes(selectedFile.type)
+      ) {
+        const err = `Invalid file type. Accepted: ${acceptedFileTypes
+          .map((t) => t.split("/")[1])
+          .join(", ")
+          .toUpperCase()}`;
+        setError(err);
+        setStatus("error");
+        if (onUploadError) onUploadError(err);
+        return false;
+      }
+      if (maxFileSize && selectedFile.size > maxFileSize) {
+        const err = `File size exceeds the limit of ${formatBytes(
+          maxFileSize
+        )}.`;
+        setError(err);
+        setStatus("error");
+        if (onUploadError) onUploadError(err);
+        return false;
+      }
+      return true;
+    },
+    [acceptedFileTypes, maxFileSize, onUploadError, formatBytes]
+  )
+  const simulateUpload = useCallback(
+    (uploadingFile: File) => {
+      let currentProgress = 0;
+      const interval = setInterval(() => {
+        currentProgress += Math.random() * 10 + 10;
+        if (currentProgress >= 100) {
+          clearInterval(interval);
+          setProgress(100);
+          setStatus("success");
+          if (onUploadSuccess) {
+            onUploadSuccess(uploadingFile);
+          }
+        } else {
+          setStatus((prevStatus) => {
+            if (prevStatus === "uploading") {
+              setProgress(currentProgress);
+              return "uploading";
+            }
+            clearInterval(interval);
+            return prevStatus;
+          });
+        }
+      }, 200);
+    },
+    [onUploadSuccess]
+  );;
 
-    setFile(selectedFile);
-    setError(null);
-    setStatus("uploading");
-    setProgress(0);
-    simulateUpload(selectedFile);
-  };
+  const handleFileSelect = useCallback(
+    (selectedFile: File | null) => {
+      if (!selectedFile) return;
+
+      if (!handleFileValidation(selectedFile)) {
+        setFile(null);
+        return;
+      }
+
+      setFile(selectedFile);
+      setError(null);
+      setStatus("uploading");
+      setProgress(0);
+      simulateUpload(selectedFile);
+    },
+    [handleFileValidation, simulateUpload]
+  );
 
   const handleDragOver = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
@@ -185,7 +230,7 @@ export default function FileUpload({
       }
     },
     [status, handleFileSelect]
-  ); // Add dependencies
+  );
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -198,30 +243,7 @@ export default function FileUpload({
     fileInputRef.current?.click();
   };
 
-  const simulateUpload = (uploadingFile: File) => {
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 10 + 10;
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        setProgress(100);
-        setStatus("success");
-        if (onUploadSuccess) {
-          onUploadSuccess(uploadingFile);
-        }
-      } else {
-        // Check if still in uploading state before updating progress
-        setStatus((prevStatus) => {
-          if (prevStatus === "uploading") {
-            setProgress(currentProgress);
-            return "uploading";
-          }
-          clearInterval(interval);
-          return prevStatus;
-        });
-      }
-    }, 200);
-  };
+  
 
   const resetState = () => {
     setFile(null);
@@ -239,21 +261,6 @@ export default function FileUpload({
     setPreviewUrl(null);
     if (onFileRemove) onFileRemove();
   }, [onFileRemove]);
-
-  const formatBytes = (bytes: number, decimals = 2): string => {
-    if (!+bytes) return "0 Bytes";
-
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    // Ensure index is within bounds
-    const unit = sizes[i] || sizes[sizes.length - 1];
-
-    return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${unit}`;
-  };
 
   //handlegenerate
   const handleGenerate = () => {

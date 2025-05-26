@@ -9,7 +9,7 @@ import ProductDemo from "@/components/organisms/product-demo";
 
 export default function Home() {
   return (
-    <main className="relative overflow-hidden">
+    <main className="relative overflow-hidden p-4">
       <div className="noise-bg">
         <div className="glow glow-1" />
         <div className="glow glow-2" />

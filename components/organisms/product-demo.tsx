@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef } from "react";
+import { FC, useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, Loader2 } from "lucide-react";
 import SectionHeading from "@/components/atoms/section-heading";
@@ -10,6 +10,11 @@ const ProductDemo: FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load(); 
+    }
+  }, []);
 
   const handlePlayPause = async () => {
     const video = videoRef.current;
@@ -29,23 +34,12 @@ const ProductDemo: FC = () => {
     }
   };
 
-  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+  const handleVideoError = (
+    e: React.SyntheticEvent<HTMLVideoElement, Event>
+  ) => {
     console.error("Video error:", e);
     setError("Failed to load video - please check if the video file exists");
     setIsLoading(false);
-  };
-
-  const handleLoadedData = () => {
-    setIsLoading(false);
-    setError(null);
-  };
-
-  const handlePlay = () => {
-    setIsPlaying(true);
-  };
-
-  const handlePause = () => {
-    setIsPlaying(false);
   };
 
   return (
@@ -73,20 +67,20 @@ const ProductDemo: FC = () => {
                 playsInline
                 muted
                 preload="metadata"
-                onLoadedData={handleLoadedData}
-                onPlay={handlePlay}
-                onPause={handlePause}
+                onLoadedMetadata={() => setIsLoading(false)}
+                onPlay={() => {
+                  setIsPlaying(true);
+                }}
+                onPause={() => {
+                  setIsPlaying(false);
+                }}
                 onError={handleVideoError}
                 onCanPlay={() => setIsLoading(false)}
               >
-                <source
-                  src="/assets/Screen Recording 2025-05-25 at 3.03.44 PM.mp4"
-type="video/mp4"
-                />
+                <source src="/assets/product-demo.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
 
-              {/* Loading State */}
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                   <div className="text-center">
@@ -96,7 +90,6 @@ type="video/mp4"
                 </div>
               )}
 
-              {/* Error State */}
               {error && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                   <div className="text-white text-center p-4 max-w-md">
@@ -106,7 +99,8 @@ type="video/mp4"
                       </div>
                       <p className="text-red-400 mb-2">Video Unavailable</p>
                       <p className="text-gray-300 text-sm mb-4">
-                        The demo video is currently being processed. Check back soon!
+                        The demo video is currently being processed. Check back
+                        soon!
                       </p>
                     </div>
                     <button
@@ -124,8 +118,6 @@ type="video/mp4"
                   </div>
                 </div>
               )}
-
-              {/* Play/Pause Button */}
               {!error && !isLoading && (
                 <motion.button
                   onClick={handlePlayPause}
@@ -167,7 +159,10 @@ type="video/mp4"
         >
           <p className="text-sm">
             Having trouble with the video? Check out our{" "}
-            <a href="#features" className="text-violet-400 hover:text-violet-300 underline">
+            <a
+              href="#features"
+              className="text-violet-400 hover:text-violet-300 underline"
+            >
               features section
             </a>{" "}
             to learn more about BuzzDrop.ai
