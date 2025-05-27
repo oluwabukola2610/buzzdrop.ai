@@ -51,13 +51,15 @@ export const vibes = [
 ];
 
  export const niches = [
-    { id: 'tech', name: 'Tech', icon: '💻', color: 'blue' },
-    { id: 'fashion', name: 'Fashion', icon: '👗', color: 'pink' },
-    { id: 'fitness', name: 'Fitness', icon: '💪', color: 'green' },
-    { id: 'food', name: 'Food', icon: '🍳', color: 'orange' },
-    { id: 'travel', name: 'Travel', icon: '✈️', color: 'purple' },
-    { id: 'business', name: 'Business', icon: '💼', color: 'gray' }
-  ];
+   { id: "tech", name: "Tech", icon: "💻" },
+   { id: "fitness", name: "Fitness", icon: "💪" },
+   { id: "food", name: "Food", icon: "🍕" },
+   { id: "travel", name: "Travel", icon: "✈️" },
+   { id: "finance", name: "Finance", icon: "💰" },
+   { id: "lifestyle", name: "Lifestyle", icon: "🌟" },
+   { id: "business", name: "Business", icon: "📈" },
+   { id: "health", name: "Other", icon: "✏️" },
+ ];
 
 export function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve) => {

@@ -11,17 +11,9 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { generateTrendingContentIdeas } from "@/lib/openai";
+import { niches } from "@/lib/utils";
 
-const niches = [
-  { id: "tech", name: "Tech", icon: "💻" },
-  { id: "fitness", name: "Fitness", icon: "💪" },
-  { id: "food", name: "Food", icon: "🍕" },
-  { id: "travel", name: "Travel", icon: "✈️" },
-  { id: "finance", name: "Finance", icon: "💰" },
-  { id: "lifestyle", name: "Lifestyle", icon: "🌟" },
-  { id: "business", name: "Business", icon: "📈" },
-  { id: "health", name: "Health", icon: "🏥" },
-];
+
 
 interface ContentIdea {
   topic: string;
@@ -32,11 +24,11 @@ const TrendingContentDisplay = () => {
   const [selectedNiche, setSelectedNiche] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<ContentIdea[]>([]);
-
+  const [userPrompt, setuserPrompt] = useState("");
   const handlegenerate = async () => {
     try {
       setIsGenerating(true);
-      const res = await generateTrendingContentIdeas(selectedNiche);
+      const res = await generateTrendingContentIdeas(selectedNiche, userPrompt);
       setGeneratedContent(res || []);
       console.log(res);
     } catch (error) {
@@ -48,7 +40,8 @@ const TrendingContentDisplay = () => {
 
   const getEngagementColor = (engagement) => {
     const percent = parseFloat(engagement);
-    if (percent >= 80) return "text-green-600 bg-green-100 dark:bg-green-900/20";
+    if (percent >= 80)
+      return "text-green-600 bg-green-100 dark:bg-green-900/20";
     if (percent >= 50)
       return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20";
     return "text-red-600 bg-red-100 dark:bg-red-900/20";
@@ -108,6 +101,34 @@ const TrendingContentDisplay = () => {
               ))}
             </div>
           </div>
+          {selectedNiche === "Other" && (
+            <div className="p-8">
+              <div className="relative mt-4 space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-violet-500" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Describe Your Custom Niche
+                  </label>
+                </div>
+                <div className="relative">
+                  <textarea
+                    value={userPrompt}
+                    onChange={(e) => setuserPrompt(e.target.value)}
+                    placeholder="E.g., Pet fashion photography, Sustainable urban farming, Vintage car restoration..."
+                    className="w-full h-24 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 resize-none"
+                    maxLength={200}
+                  />
+                  <div className="absolute right-3 bottom-3 text-xs text-gray-400 dark:text-gray-500">
+                    {userPrompt.length}/200
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Be specific about your niche to get more targeted content
+                  suggestions
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -196,9 +217,6 @@ const TrendingContentDisplay = () => {
                               <p className="text-gray-800 dark:text-gray-200 flex-1 leading-relaxed">
                                 &#34;{hook}&ldquo;
                               </p>
-                              <button className="ml-4 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-lg text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-200 hover:from-violet-600 hover:to-purple-600 whitespace-nowrap">
-                                Use Hook
-                              </button>
                             </div>
                           </div>
                         ))}

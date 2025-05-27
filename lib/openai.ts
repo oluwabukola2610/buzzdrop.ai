@@ -4,44 +4,38 @@ const apiKey = process.env.GOOGLE_API_KEY!;
 
 const ai = new GoogleGenAI({ apiKey });
 
-export async function generateTrendingContentIdeas(niche: string) {
+export async function generateTrendingContentIdeas(
+  niche: string,
+  userPrompt: string
+) {
   const prompt = `
 You are a viral content strategist AI.
 
-Based on the niche: **${niche}**, generate 4 **trendy content ideas** that could go viral on social platforms.
+Based on the niche: ${niche} and specific topic: ${userPrompt}, generate 4 **trendy content ideas** that could go viral on social platforms.
+
+Context from user: ${userPrompt}
 
 For each idea:
-- Give it a **clear topic title**
+- Give it a **clear topic title** related to the user's prompt
 - Write **4 unique scroll-stopping hooks** that could be used as intros for reels, captions, tweets, or video content
 - Hooks should be short, curiosity-driven, and catchy
 - Estimate a potential **engagement rate** (as a percentage) based on how likely the idea is to go viral
+- Include specific keywords and themes from the user's prompt
 
 **IMPORTANT: Return ONLY valid JSON in this exact format, no extra text:**
 
 [
   {
-    "topic": "Example Topic Title",
+    "topic": "Topic Title (based on ${userPrompt})",
     "hooks": [
-      "Hook 1 example",
-      "Hook 2 example",
-      "Hook 3 example",
-      "Hook 4 example"
+      "Hook 1 incorporating ${niche} elements",
+      "Hook 2 related to ${userPrompt}",
+      "Hook 3 targeting the specific audience",
+      "Hook 4 with trending angle"
     ],
-    "engagementRate": "78%"
-  },
-  {
-    "topic": "Another Topic Title",
-    "hooks": [
-      "Hook 1 example",
-      "Hook 2 example",
-      "Hook 3 example",
-      "Hook 4 example"
-    ],
-    "engagementRate": "85%"
+    "engagementRate": "85%",
   }
-]
-`;
-
+]`;
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash",
@@ -59,6 +53,6 @@ For each idea:
     return JSON.parse(response.text);
   } catch (err) {
     console.error("Gemini trending content generation failed:", err);
-    return undefined;
+    return err;
   }
 }
